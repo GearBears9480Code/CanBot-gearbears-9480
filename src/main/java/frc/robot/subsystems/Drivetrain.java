@@ -12,10 +12,10 @@ import frc.robot.RobotContainer;
 public class Drivetrain extends SubsystemBase {
   /** Creates a new Drivetrain. */
   // Sets up the motors corresponding to their position on the bot.
-  private PWMTalonSRX rightRear = new PWMTalonSRX(0);
-  private PWMTalonSRX leftRear = new PWMTalonSRX(1);
-  private PWMTalonSRX rightFront = new PWMTalonSRX(2);
-  private PWMTalonSRX leftFront = new PWMTalonSRX(3);
+  private PWMTalonSRX rightRear = new PWMTalonSRX(10);
+  private PWMTalonSRX leftRear = new PWMTalonSRX(11);
+  private PWMTalonSRX rightFront = new PWMTalonSRX(12);
+  private PWMTalonSRX leftFront = new PWMTalonSRX(13);
 
   private RobotContainer robotContainer;
 
