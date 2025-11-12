@@ -4,18 +4,23 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
+import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.OperatorConstants;
 import frc.robot.RobotContainer;
 
 public class Drivetrain extends SubsystemBase {
   /** Creates a new Drivetrain. */
   // Sets up the motors corresponding to their position on the bot.
-  private PWMTalonSRX rightRear = new PWMTalonSRX(0);
-  private PWMTalonSRX leftRear = new PWMTalonSRX(1);
-  private PWMTalonSRX rightFront = new PWMTalonSRX(2);
-  private PWMTalonSRX leftFront = new PWMTalonSRX(3);
+  TalonSRX rightRear = new TalonSRX(10);
+  TalonSRX leftRear = new TalonSRX(11);
+  TalonSRX rightFront = new TalonSRX(12);
+  TalonSRX leftFront = new TalonSRX(13);
+
+  private final CommandXboxController m_driverController =
+      new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
   private RobotContainer robotContainer;
 
@@ -26,18 +31,23 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run, aka every 20 ms
-    CommandXboxController m_driverController = robotContainer.getControl();
+    robotContainer.getControl();
 
-    double driveVelocity = m_driverController.getLeftY() * -1;
-    double turnVelocity = m_driverController.getRightX();
+    double rawDriveVelocity = (m_driverController.getLeftY() * -1) / 2;
+    double rawTurnVelocity = (m_driverController.getRightX()) / 2;
 
-    sendOutputToMotors(leftFront, leftRear, driveVelocity, turnVelocity);
-    sendOutputToMotors(rightFront, rightRear, driveVelocity, turnVelocity * -1);
+    double driveVelocity = Math.floor(rawDriveVelocity * 1000) / 1000;
+    double turnVelocity = Math.floor(rawTurnVelocity * 1000) / 1000;
+
+    double deadBand = 0.1;
+    
+    sendOutputToMotors(rightFront, rightRear, -1 * driveVelocity, turnVelocity > deadBand || turnVelocity < -deadBand ? turnVelocity : 0);
+    sendOutputToMotors(leftFront, leftRear, driveVelocity, turnVelocity > deadBand || turnVelocity < -deadBand ? turnVelocity : 0);
   }
 
-  private void sendOutputToMotors(PWMTalonSRX front, PWMTalonSRX rear, double output, double turnOutput) {
-    front.set(output + turnOutput);
-    rear.set(output + turnOutput);
+  private void sendOutputToMotors(TalonSRX front, TalonSRX rear, double output, double turnOutput) {
+    double speed = output + turnOutput;
+    front.set(TalonSRXControlMode.PercentOutput, Math.abs(speed) > 0.01 ? speed : 0);
+    rear.set(TalonSRXControlMode.PercentOutput, Math.abs(speed) > 0.01 ? speed : 0);
   }
-
 }
