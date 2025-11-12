@@ -33,18 +33,21 @@ public class Drivetrain extends SubsystemBase {
     // This method will be called once per scheduler run, aka every 20 ms
     robotContainer.getControl();
 
-    double rawDriveVelocity = m_driverController.getLeftY() * -1;
-    double rawTurnVelocity = m_driverController.getRightX();
+    double rawDriveVelocity = (m_driverController.getLeftY() * -1) / 2;
+    double rawTurnVelocity = (m_driverController.getRightX()) / 2;
 
     double driveVelocity = Math.floor(rawDriveVelocity * 1000) / 1000;
     double turnVelocity = Math.floor(rawTurnVelocity * 1000) / 1000;
+
+    double deadBand = 0.1;
     
-    sendOutputToMotors(rightFront, rightRear, -1 * driveVelocity, turnVelocity);
-    sendOutputToMotors(leftFront, leftRear, driveVelocity, turnVelocity);
+    sendOutputToMotors(rightFront, rightRear, -1 * driveVelocity, turnVelocity > deadBand || turnVelocity < -deadBand ? turnVelocity : 0);
+    sendOutputToMotors(leftFront, leftRear, driveVelocity, turnVelocity > deadBand || turnVelocity < -deadBand ? turnVelocity : 0);
   }
 
   private void sendOutputToMotors(TalonSRX front, TalonSRX rear, double output, double turnOutput) {
-    front.set(TalonSRXControlMode.PercentOutput, output + turnOutput);
-    rear.set(TalonSRXControlMode.PercentOutput, output + turnOutput);
+    double speed = output + turnOutput;
+    front.set(TalonSRXControlMode.PercentOutput, Math.abs(speed) > 0.01 ? speed : 0);
+    rear.set(TalonSRXControlMode.PercentOutput, Math.abs(speed) > 0.01 ? speed : 0);
   }
 }
